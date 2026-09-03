@@ -26,6 +26,7 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { getCarePlanForPatient, saveCarePlanForPatient, subscribeCarePlan } from '../utils/carePlanStore';
 import { getEmergencyEvents, recordPanicEvent, updateEventStatus, subscribeEmergencyEvents } from '../utils/emergencyEventStore';
+import { addAlarm } from '../utils/medicationAlarmStore';
 
 export default function DoctorDashboard({ 
   data = { hr: null, gsr: null, panic: 0 }, 
@@ -247,10 +248,10 @@ export default function DoctorDashboard({
     setEditingRx(null);
     setRxForm({
       medicineName: '',
-      dosage: '',
-      frequency: '',
-      timing: '',
-      duration: '',
+      dosage: '1 tablet',
+      frequency: '1-0-1 (BF)',
+      alarmTime: '20:00',
+      duration: '5 days',
       status: 'Active'
     });
     setShowRxModal(true);
@@ -260,10 +261,10 @@ export default function DoctorDashboard({
     setEditingRx(rx);
     setRxForm({
       medicineName: rx.medicineName || rx.name || '',
-      dosage: rx.dosage || '',
-      frequency: rx.frequency || '',
-      timing: rx.timing || '',
-      duration: rx.duration || '',
+      dosage: rx.dosage || '1 tablet',
+      frequency: rx.frequency || '1-0-1 (BF)',
+      alarmTime: rx.alarmTime || '20:00',
+      duration: rx.duration || '5 days',
       status: rx.status || 'Active'
     });
     setShowRxModal(true);
@@ -273,28 +274,53 @@ export default function DoctorDashboard({
     e.preventDefault();
     if (!rxForm.medicineName) return;
 
+    const alarmTimeVal = rxForm.alarmTime || '20:00';
+    const [hh, mm] = alarmTimeVal.split(':');
+    const hourNum = parseInt(hh, 10);
+    const ampm = hourNum >= 12 ? 'PM' : 'AM';
+    const formattedHour = hourNum % 12 || 12;
+    const timeLabel = `${formattedHour < 10 ? '0' + formattedHour : formattedHour}:${mm} ${ampm}`;
+
+    const rxPayload = {
+      ...rxForm,
+      nextDose: timeLabel
+    };
+
     const existingRxs = carePlan.prescriptions || [];
     let updatedRxs = [];
 
     if (editingRx) {
       updatedRxs = existingRxs.map(rx => 
-        rx.id === editingRx.id ? { ...rx, ...rxForm } : rx
+        rx.id === editingRx.id ? { ...rx, ...rxPayload } : rx
       );
     } else {
       const newRx = {
         id: `rx-${Date.now()}`,
-        ...rxForm,
+        ...rxPayload,
         prescribedBy: 'Dr. Sarah',
-        prescribedDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-        nextDose: '08:00 PM'
+        prescribedDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
       };
       updatedRxs = [...existingRxs, newRx];
+    }
+
+    // Auto-create/sync medication alarm for patient
+    try {
+      addAlarm({
+        medicineName: rxForm.medicineName,
+        dosage: rxForm.dosage || '1 tablet',
+        instruction: rxForm.frequency || '1-0-1 (BF)',
+        time: alarmTimeVal,
+        timeLabel: timeLabel,
+        patientName: currentPatientObj?.name || 'Patient'
+      });
+    } catch (err) {
+      console.error("Failed to sync alarm", err);
     }
 
     const updatedPlan = { ...carePlan, prescriptions: updatedRxs };
     saveCarePlanForPatient(selectedPatient, updatedPlan);
     setShowRxModal(false);
-    showToast(editingRx ? "Prescription updated." : "New prescription added.");
+    showToast(editingRx ? "Prescription & Medication Alarm updated." : "New Prescription & Medication Alarm set for patient.");
   };
 
   const handleRemoveRx = (rxId) => {
@@ -973,13 +999,13 @@ export default function DoctorDashboard({
               </div>
               <div className="care-plan-form-row">
                 <div className="care-plan-field">
-                  <label>Timing</label>
+                  <label>Alarm Time (Reminder)</label>
                   <input 
-                    type="text" 
-                    placeholder="e.g. After breakfast & dinner" 
-                    value={rxForm.timing}
-                    onChange={e => setRxForm({ ...rxForm, timing: e.target.value })}
+                    type="time" 
+                    value={rxForm.alarmTime || '20:00'}
+                    onChange={e => setRxForm({ ...rxForm, alarmTime: e.target.value })}
                     required
+                    style={{ padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', fontSize: '0.9rem', backgroundColor: 'white' }}
                   />
                 </div>
                 <div className="care-plan-field">
