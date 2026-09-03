@@ -367,7 +367,13 @@ export default function DoctorDashboard({
 
   const handleSaveDiet = (e) => {
     e.preventDefault();
-    const parseList = (str) => str.split(',').map(s => s.trim()).filter(Boolean);
+    const parseList = (str) => {
+      if (!str) return [];
+      if (Array.isArray(str)) {
+        return str.flatMap(s => String(s).split(/[\n,]+/)).map(s => s.trim()).filter(Boolean);
+      }
+      return String(str).split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+    };
 
     const updatedDiet = {
       breakfast: parseList(dietForm.breakfast),

@@ -68,6 +68,42 @@ function PrescriptionCard({ rx }) {
 }
 
 function DietPlan({ dietPlan = {}, lastUpdated }) {
+  const renderMealList = (val, defaultMsg) => {
+    let list = [];
+    if (Array.isArray(val)) {
+      // If array elements themselves contain merged string, split or keep
+      list = val.flatMap(item => {
+        const str = String(item).trim();
+        // If string has camelCase or concatenated words, handle camelCase or comma/newline
+        if (str.includes(',')) return str.split(',').map(s => s.trim());
+        if (str.includes('\n')) return str.split('\n').map(s => s.trim());
+        return str;
+      }).filter(Boolean);
+    } else if (typeof val === 'string' && val.trim()) {
+      if (val.includes(',')) {
+        list = val.split(',').map(s => s.trim()).filter(Boolean);
+      } else if (val.includes('\n')) {
+        list = val.split('\n').map(s => s.trim()).filter(Boolean);
+      } else {
+        list = [val.trim()];
+      }
+    }
+
+    if (list.length === 0) {
+      return <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>{defaultMsg}</div>;
+    }
+
+    return (
+      <ul style={{ margin: '0.4rem 0 0 0', paddingLeft: '1.2rem', fontSize: '0.88rem', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+        {list.map((item, idx) => (
+          <li key={idx} style={{ fontWeight: 500, lineHeight: 1.4 }}>{item}</li>
+        ))}
+      </ul>
+    );
+  };
+
+  const snackVal = dietPlan.snacks || dietPlan.eveningSnack;
+
   return (
     <section className="care-section-card">
       <div className="care-section-header">
@@ -85,28 +121,28 @@ function DietPlan({ dietPlan = {}, lastUpdated }) {
             <Coffee size={18} color="var(--primary)" />
             <span>BREAKFAST</span>
           </div>
-          <p className="diet-meal-text">{dietPlan.breakfast || 'Oatmeal, fresh berries, and green tea.'}</p>
+          {renderMealList(dietPlan.breakfast, 'Oatmeal, fresh berries, green tea')}
         </div>
         <div className="diet-meal-card">
           <div className="diet-meal-header">
             <Sun size={18} color="var(--primary)" />
             <span>LUNCH</span>
           </div>
-          <p className="diet-meal-text">{dietPlan.lunch || 'Grilled chicken salad with olive oil dressing.'}</p>
+          {renderMealList(dietPlan.lunch, 'Grilled chicken salad, olive oil')}
         </div>
         <div className="diet-meal-card">
           <div className="diet-meal-header">
             <Sunset size={18} color="var(--primary)" />
             <span>SNACKS</span>
           </div>
-          <p className="diet-meal-text">{dietPlan.snacks || 'Handful of almonds and apple slices.'}</p>
+          {renderMealList(snackVal, 'Handful of almonds, apple slices')}
         </div>
         <div className="diet-meal-card">
           <div className="diet-meal-header">
             <Moon size={18} color="var(--primary)" />
             <span>DINNER</span>
           </div>
-          <p className="diet-meal-text">{dietPlan.dinner || 'Steamed salmon with quinoa and vegetables.'}</p>
+          {renderMealList(dietPlan.dinner, 'Steamed salmon, quinoa, vegetables')}
         </div>
       </div>
     </section>
