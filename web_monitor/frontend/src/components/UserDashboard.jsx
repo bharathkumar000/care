@@ -318,8 +318,8 @@ export default function UserDashboard({
         icon: <WifiOff size={24} className="status-icon offline" />
       };
     }
-    // Simple physiological indicator (e.g. HR > 100 or HR < 50)
-    if (data.hr > 100 || data.hr < 50) {
+    // Physiological indicator based on CDC/AHA standards (HR > 100 Tachycardia or HR < 60 Bradycardia)
+    if (data.hr > 100 || data.hr < 60) {
       return {
         level: 'attention',
         title: 'ATTENTION',

@@ -80,7 +80,7 @@ export default function DoctorDashboard({
 
   // Alert Thresholds State (Session Persisted)
   const [thresholds, setThresholds] = useState({
-    hrMin: 50,
+    hrMin: 60,
     hrMax: 100,
     stressMax: 520,
     panicAlertEnabled: true
@@ -1296,13 +1296,50 @@ export default function DoctorDashboard({
             <form onSubmit={handleSaveThresholds}>
               <div className="modal-body">
                 <p className="modal-description">
-                  Customize real-time telemetry trigger limits for <strong>{selectedPatientData ? selectedPatientData.name : 'Patient'}</strong>. Readings outside these parameters will generate caregiver warnings.
+                  Customize real-time telemetry trigger limits for <strong>{selectedPatientData ? selectedPatientData.name : 'Patient'}</strong> based on CDC/AHA physiological guidelines. Readings outside these parameters will generate alerts.
                 </p>
+
+                {/* AGE GROUP & CLINICAL PRESETS */}
+                <div style={{ marginBottom: '1.25rem', backgroundColor: 'var(--surface-ice, #EBF3FA)', padding: '0.85rem 1rem', borderRadius: '10px', border: '1px solid var(--border-subtle, #cbd5e1)' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary, #163B66)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Quick Presets by Age Group (CDC / AHA Standard)
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {[
+                      { label: 'Adult (18–64 yrs)', min: 60, max: 100 },
+                      { label: 'Older Adult (65+ yrs)', min: 60, max: 100 },
+                      { label: 'Adolescent (13–17 yrs)', min: 60, max: 100 },
+                      { label: 'School Age (5–12 yrs)', min: 75, max: 118 },
+                      { label: 'Preschooler (3–5 yrs)', min: 80, max: 120 },
+                      { label: 'Toddler (1–3 yrs)', min: 98, max: 140 },
+                      { label: 'Infant (4 wks–1 yr)', min: 100, max: 180 },
+                      { label: 'Athlete (40–60 bpm)', min: 40, max: 60 },
+                    ].map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => setTempThresholds({ ...tempThresholds, hrMin: preset.min, hrMax: preset.max })}
+                        style={{
+                          padding: '4px 9px',
+                          fontSize: '0.75rem',
+                          borderRadius: '6px',
+                          border: tempThresholds.hrMin === preset.min && tempThresholds.hrMax === preset.max ? '1px solid var(--primary, #163B66)' : '1px solid var(--border-subtle, #cbd5e1)',
+                          background: tempThresholds.hrMin === preset.min && tempThresholds.hrMax === preset.max ? 'var(--primary, #163B66)' : 'white',
+                          color: tempThresholds.hrMin === preset.min && tempThresholds.hrMax === preset.max ? 'white' : 'var(--text-main, #1e293b)',
+                          cursor: 'pointer',
+                          fontWeight: 600
+                        }}
+                      >
+                        {preset.label} ({preset.min}–{preset.max} BPM)
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 {/* HR MIN THRESHOLD */}
                 <div className="threshold-card">
                   <div className="threshold-card-header">
-                    <label>Heart Rate Min Threshold</label>
+                    <label>Heart Rate Min Threshold (Bradycardia Alert)</label>
                     <span className="threshold-value-badge">{tempThresholds.hrMin} BPM</span>
                   </div>
                   <div className="threshold-input-wrapper">
@@ -1342,14 +1379,14 @@ export default function DoctorDashboard({
                   </div>
                   <div className="threshold-bounds-hint">
                     <span>Range: 30 - 100 BPM</span>
-                    <span>Default: 50 BPM</span>
+                    <span>Default: 60 BPM (CDC Normal Resting)</span>
                   </div>
                 </div>
 
                 {/* HR MAX THRESHOLD */}
                 <div className="threshold-card">
                   <div className="threshold-card-header">
-                    <label>Heart Rate Max Threshold</label>
+                    <label>Heart Rate Max Threshold (Tachycardia Alert)</label>
                     <span className="threshold-value-badge">{tempThresholds.hrMax} BPM</span>
                   </div>
                   <div className="threshold-input-wrapper">
@@ -1389,7 +1426,7 @@ export default function DoctorDashboard({
                   </div>
                   <div className="threshold-bounds-hint">
                     <span>Range: 80 - 200 BPM</span>
-                    <span>Default: 100 BPM</span>
+                    <span>Default: 100 BPM (CDC Normal Resting)</span>
                   </div>
                 </div>
 
@@ -1436,15 +1473,15 @@ export default function DoctorDashboard({
                   </div>
                   <div className="threshold-bounds-hint">
                     <span>Range: 200 - 1000 GSR</span>
-                    <span>Default: 520</span>
+                    <span>Default: 520 GSR</span>
                   </div>
                 </div>
 
                 {/* PANIC ALERT TOGGLE */}
                 <div className="threshold-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0' }}>
                   <div>
-                    <div style={{ fontWeight: 600, color: '#ffffff', fontSize: '0.92rem' }}>Hardware Panic Alerts</div>
-                    <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '2px' }}>Enable banner warnings on physical panic button triggers</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-main, #1e293b)', fontSize: '0.92rem' }}>Hardware Panic Alerts</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted, #64748b)', marginTop: '2px' }}>Enable banner warnings on physical panic button triggers</div>
                   </div>
                   <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', gap: '0.6rem' }}>
                     <input 
@@ -1461,9 +1498,9 @@ export default function DoctorDashboard({
 
                 {/* CLINICAL NOTICE */}
                 <div className="threshold-disclaimer">
-                  <Info size={20} color="#38bdf8" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <Info size={20} color="var(--primary, #163B66)" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
-                    <strong>Clinical Notice:</strong> Monitoring thresholds act as visual & telemetry triggers for observation and non-diagnostic caregiver alerts.
+                    <strong>CDC Clinical Guidance:</strong> A resting heart rate consistently <strong>&gt; 100 BPM</strong> (tachycardia) or <strong>&lt; 60 BPM</strong> (bradycardia) outside athletic conditioning signals a clinical concern requiring medical review.
                   </div>
                 </div>
               </div>
