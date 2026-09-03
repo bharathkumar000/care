@@ -44,10 +44,6 @@ function PrescriptionCard({ rx }) {
           <span className="rx-value">{rx.frequency || '--'}</span>
         </div>
         <div className="rx-detail-item">
-          <span className="rx-label">Timing</span>
-          <span className="rx-value">{rx.timing || '--'}</span>
-        </div>
-        <div className="rx-detail-item">
           <span className="rx-label">Duration</span>
           <span className="rx-value">{rx.duration || '--'}</span>
         </div>

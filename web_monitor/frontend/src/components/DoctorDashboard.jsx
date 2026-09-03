@@ -730,7 +730,6 @@ export default function DoctorDashboard({
                       <div className="doc-rx-body">
                         <div><strong>Dosage:</strong> {rx.dosage || '--'}</div>
                         <div><strong>Frequency:</strong> {rx.frequency || '--'}</div>
-                        <div><strong>Timing:</strong> {rx.timing || '--'}</div>
                         <div><strong>Duration:</strong> {rx.duration || '--'}</div>
                       </div>
                       <div className="doc-rx-actions">
