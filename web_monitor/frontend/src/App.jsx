@@ -74,7 +74,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <MedicationAlarmModal isOpen={isAlarmModalOpen} onClose={handleCloseAlarm} />
+      <MedicationAlarmModal isOpen={isAlarmModalOpen} onClose={handleCloseAlarm} auth={auth} />
       
       <Routes>
         <Route path="/" element={

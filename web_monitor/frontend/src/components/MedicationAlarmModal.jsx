@@ -5,11 +5,13 @@ import {
   subscribeAlarms, startAlarmSound, stopAlarmSound 
 } from '../utils/medicationAlarmStore';
 
-export default function MedicationAlarmModal({ isOpen, onClose }) {
+export default function MedicationAlarmModal({ isOpen, onClose, auth }) {
   const [alarms, setAlarms] = useState(getAlarms());
   const [triggeredAlarm, setTriggeredAlarm] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+
+  const isDoctorOrAdmin = auth?.role === 'Doctor' || auth?.role === 'Admin';
   
   // Edit Alarm State
   const [editingAlarmId, setEditingAlarmId] = useState(null);
@@ -198,13 +200,15 @@ export default function MedicationAlarmModal({ isOpen, onClose }) {
               <button onClick={handleTestAlarm} className="btn-pill btn-pill-navy" style={{ padding: '0.45rem 1rem', fontSize: '0.82rem' }}>
                 <Play size={14} /> Test Alarm Sound
               </button>
-              <button 
-                onClick={() => { setShowAddForm(!showAddForm); setEditingAlarmId(null); }} 
-                className="btn-pill btn-pill-outline" 
-                style={{ padding: '0.45rem 1rem', fontSize: '0.82rem' }}
-              >
-                <Plus size={14} /> {showAddForm ? 'Cancel' : 'Set New Alarm'}
-              </button>
+              {isDoctorOrAdmin && (
+                <button 
+                  onClick={() => { setShowAddForm(!showAddForm); setEditingAlarmId(null); }} 
+                  className="btn-pill btn-pill-outline" 
+                  style={{ padding: '0.45rem 1rem', fontSize: '0.82rem' }}
+                >
+                  <Plus size={14} /> {showAddForm ? 'Cancel' : 'Set New Alarm'}
+                </button>
+              )}
             </div>
 
             {/* Add New Alarm Form */}
@@ -330,22 +334,26 @@ export default function MedicationAlarmModal({ isOpen, onClose }) {
                           >
                             {alarm.enabled ? 'ON' : 'OFF'}
                           </button>
-                          <button 
-                            type="button" 
-                            onClick={() => handleStartEdit(alarm)} 
-                            className="alarm-edit-btn"
-                            title="Edit Medication Alarm"
-                          >
-                            <Pencil size={15} />
-                          </button>
-                          <button 
-                            type="button" 
-                            onClick={() => deleteAlarm(alarm.id)} 
-                            className="alarm-delete-btn"
-                            title="Delete Alarm"
-                          >
-                            <X size={16} />
-                          </button>
+                          {isDoctorOrAdmin && (
+                            <>
+                              <button 
+                                type="button" 
+                                onClick={() => handleStartEdit(alarm)} 
+                                className="alarm-edit-btn"
+                                title="Edit Medication Alarm"
+                              >
+                                <Pencil size={15} />
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => deleteAlarm(alarm.id)} 
+                                className="alarm-delete-btn"
+                                title="Delete Alarm"
+                              >
+                                <X size={16} />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </>
                     )}
