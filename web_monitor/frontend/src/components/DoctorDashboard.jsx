@@ -931,13 +931,24 @@ export default function DoctorDashboard({
               <div className="care-plan-form-row">
                 <div className="care-plan-field">
                   <label>Dosage</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. 1 tablet" 
-                    value={rxForm.dosage}
+                  <select 
+                    value={rxForm.dosage || '1 tablet'}
                     onChange={e => setRxForm({ ...rxForm, dosage: e.target.value })}
                     required
-                  />
+                    style={{ padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', fontSize: '0.9rem', backgroundColor: 'white' }}
+                  >
+                    <option value="1 tablet">1 tablet</option>
+                    <option value="2 tablets">2 tablets</option>
+                    <option value="3 tablets">3 tablets</option>
+                    <option value="4 tablets">4 tablets</option>
+                    <option value="1 capsule">1 capsule</option>
+                    <option value="2 capsules">2 capsules</option>
+                    <option value="3 capsules">3 capsules</option>
+                    <option value="4 capsules">4 capsules</option>
+                    <option value="1 tsp (5 ml)">1 tsp (5 ml)</option>
+                    <option value="2 tsp (10 ml)">2 tsp (10 ml)</option>
+                    <option value="1 puff / spray">1 puff / spray</option>
+                  </select>
                 </div>
                 <div className="care-plan-field">
                   <label>Frequency (e.g. 1-0-1 BF / 1-0-0 BF)</label>

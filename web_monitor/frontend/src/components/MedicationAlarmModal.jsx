@@ -231,12 +231,23 @@ export default function MedicationAlarmModal({ isOpen, onClose, auth }) {
                   />
                 </div>
                 <div className="alarm-form-row">
-                  <input 
-                    type="text" 
-                    placeholder="Dosage (e.g. 1 tablet)" 
+                  <select 
                     value={newDosage}
                     onChange={e => setNewDosage(e.target.value)}
-                  />
+                    style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-subtle)', backgroundColor: 'white' }}
+                  >
+                    <option value="1 tablet">1 tablet</option>
+                    <option value="2 tablets">2 tablets</option>
+                    <option value="3 tablets">3 tablets</option>
+                    <option value="4 tablets">4 tablets</option>
+                    <option value="1 capsule">1 capsule</option>
+                    <option value="2 capsules">2 capsules</option>
+                    <option value="3 capsules">3 capsules</option>
+                    <option value="4 capsules">4 capsules</option>
+                    <option value="1 tsp (5 ml)">1 tsp (5 ml)</option>
+                    <option value="2 tsp (10 ml)">2 tsp (10 ml)</option>
+                    <option value="1 puff / spray">1 puff / spray</option>
+                  </select>
                   <select 
                     value={newInstruction} 
                     onChange={e => setNewInstruction(e.target.value)}
@@ -286,13 +297,23 @@ export default function MedicationAlarmModal({ isOpen, onClose, auth }) {
                           />
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <input 
-                            type="text" 
-                            value={editForm.dosage} 
+                          <select 
+                            value={editForm.dosage || '1 tablet'} 
                             onChange={e => setEditForm({ ...editForm, dosage: e.target.value })}
-                            placeholder="Dosage (e.g. 1 tablet)"
-                            style={{ flex: 1, padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}
-                          />
+                            style={{ flex: 1, padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.85rem', backgroundColor: 'white' }}
+                          >
+                            <option value="1 tablet">1 tablet</option>
+                            <option value="2 tablets">2 tablets</option>
+                            <option value="3 tablets">3 tablets</option>
+                            <option value="4 tablets">4 tablets</option>
+                            <option value="1 capsule">1 capsule</option>
+                            <option value="2 capsules">2 capsules</option>
+                            <option value="3 capsules">3 capsules</option>
+                            <option value="4 capsules">4 capsules</option>
+                            <option value="1 tsp (5 ml)">1 tsp (5 ml)</option>
+                            <option value="2 tsp (10 ml)">2 tsp (10 ml)</option>
+                            <option value="1 puff / spray">1 puff / spray</option>
+                          </select>
                           <select 
                             value={editForm.instruction} 
                             onChange={e => setEditForm({ ...editForm, instruction: e.target.value })}
