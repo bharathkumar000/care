@@ -1,6 +1,6 @@
 // Centralized Care Plan Store & Persistence for C.A.R.E. Web Monitor
 
-const STORAGE_KEY = 'care_plans_store_v1';
+const STORAGE_KEY = 'care_plans_store_v2';
 
 const DEFAULT_CARE_PLANS = {
   // Patient 1: John Doe
@@ -12,8 +12,8 @@ const DEFAULT_CARE_PLANS = {
         id: "rx-101",
         medicineName: "Paracetamol 500 mg",
         dosage: "1 tablet",
-        frequency: "Twice a day",
-        timing: "After breakfast & dinner",
+        frequency: "1-0-1 (BF)",
+        timing: "Before breakfast & dinner",
         duration: "5 days",
         status: "Active",
         prescribedBy: "Dr. Sarah",
@@ -24,8 +24,8 @@ const DEFAULT_CARE_PLANS = {
         id: "rx-102",
         medicineName: "Amoxicillin 250 mg",
         dosage: "1 capsule",
-        frequency: "Three times a day",
-        timing: "After meals",
+        frequency: "1-1-1 (AF)",
+        timing: "After meals (Breakfast, Lunch & Dinner)",
         duration: "7 days",
         status: "Active",
         prescribedBy: "Dr. Sarah",
@@ -36,8 +36,8 @@ const DEFAULT_CARE_PLANS = {
         id: "rx-103",
         medicineName: "Atorvastatin 10 mg",
         dosage: "1 tablet",
-        frequency: "Once daily",
-        timing: "At bedtime",
+        frequency: "0-0-1 (AF)",
+        timing: "At bedtime (After dinner)",
         duration: "30 days",
         status: "Completed",
         prescribedBy: "Dr. Sarah",
@@ -71,8 +71,8 @@ const DEFAULT_CARE_PLANS = {
         id: "rx-201",
         medicineName: "Metformin 500 mg",
         dosage: "1 tablet",
-        frequency: "Once a day",
-        timing: "With breakfast",
+        frequency: "1-0-0 (BF)",
+        timing: "Before breakfast",
         duration: "30 days",
         status: "Active",
         prescribedBy: "Dr. Sarah",
@@ -104,8 +104,8 @@ const DEFAULT_CARE_PLANS = {
         id: "rx-301",
         medicineName: "Lisinopril 10 mg",
         dosage: "1 tablet",
-        frequency: "Once daily",
-        timing: "In the morning",
+        frequency: "1-0-0 (BF)",
+        timing: "Before breakfast",
         duration: "14 days",
         status: "Active",
         prescribedBy: "Dr. Sarah",

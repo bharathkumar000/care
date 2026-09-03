@@ -941,14 +941,43 @@ export default function DoctorDashboard({
                   />
                 </div>
                 <div className="care-plan-field">
-                  <label>Frequency</label>
+                  <label>Frequency (e.g. 1-0-1 BF / 1-0-0 BF)</label>
                   <input 
                     type="text" 
-                    placeholder="e.g. Twice a day" 
+                    placeholder="e.g. 1-0-1 (BF) or 1-0-0 (BF)" 
                     value={rxForm.frequency}
                     onChange={e => setRxForm({ ...rxForm, frequency: e.target.value })}
                     required
                   />
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                    {[
+                      { code: '1-0-1 (BF)', label: '1-0-1 (BF) - Twice Daily' },
+                      { code: '1-0-1 (AF)', label: '1-0-1 (AF) - Twice Daily' },
+                      { code: '1-0-0 (BF)', label: '1-0-0 (BF) - Morning' },
+                      { code: '1-0-0 (AF)', label: '1-0-0 (AF) - Morning' },
+                      { code: '0-0-1 (AF)', label: '0-0-1 (AF) - Night' },
+                      { code: '1-1-1 (AF)', label: '1-1-1 (AF) - Thrice Daily' }
+                    ].map((preset) => (
+                      <button
+                        key={preset.code}
+                        type="button"
+                        onClick={() => setRxForm({ ...rxForm, frequency: preset.code })}
+                        style={{
+                          padding: '3px 8px',
+                          fontSize: '0.75rem',
+                          borderRadius: '4px',
+                          border: '1px solid var(--border-subtle, #cbd5e1)',
+                          background: rxForm.frequency === preset.code ? 'var(--primary, #163B66)' : '#f8fafc',
+                          color: rxForm.frequency === preset.code ? '#ffffff' : '#334155',
+                          cursor: 'pointer',
+                          fontWeight: 600
+                        }}
+                        title={preset.label}
+                      >
+                        {preset.code}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
               <div className="care-plan-form-row">
