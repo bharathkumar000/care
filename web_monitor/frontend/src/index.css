@@ -2817,6 +2817,20 @@ select.threshold-input option {
   color: var(--text-muted);
 }
 
+.alarm-edit-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.alarm-edit-btn:hover {
+  color: var(--primary);
+}
+
 .alarm-delete-btn {
   background: transparent;
   border: none;

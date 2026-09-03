@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Bell, Clock, CheckCircle2, Volume2, VolumeX, Plus, X, AlertCircle, Play } from 'lucide-react';
+import { Bell, Clock, CheckCircle2, Volume2, VolumeX, Plus, X, AlertCircle, Play, Pencil, Save } from 'lucide-react';
 import { 
-  getAlarms, saveAlarms, addAlarm, toggleAlarmEnabled, deleteAlarm, 
+  getAlarms, saveAlarms, addAlarm, updateAlarm, toggleAlarmEnabled, deleteAlarm, 
   subscribeAlarms, startAlarmSound, stopAlarmSound 
 } from '../utils/medicationAlarmStore';
 
@@ -11,6 +11,16 @@ export default function MedicationAlarmModal({ isOpen, onClose }) {
   const [isMuted, setIsMuted] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   
+  // Edit Alarm State
+  const [editingAlarmId, setEditingAlarmId] = useState(null);
+  const [editForm, setEditForm] = useState({
+    medicineName: '',
+    dosage: '',
+    instruction: '',
+    time: '20:00',
+    patientName: ''
+  });
+
   // New Alarm Form State
   const [newMedName, setNewMedName] = useState('');
   const [newDosage, setNewDosage] = useState('1 tablet');
@@ -79,28 +89,57 @@ export default function MedicationAlarmModal({ isOpen, onClose }) {
     setTriggeredAlarm(null);
   };
 
-  const handleAddSubmit = (e) => {
-    e.preventDefault();
-    if (!newMedName || !newTime) return;
-
-    // Convert HH:MM to 12h label
-    const [hh, mm] = newTime.split(':');
+  const formatTimeLabel = (time24) => {
+    if (!time24) return '--:--';
+    const [hh, mm] = time24.split(':');
     const hourNum = parseInt(hh, 10);
     const ampm = hourNum >= 12 ? 'PM' : 'AM';
     const formattedHour = hourNum % 12 || 12;
-    const timeLabel = `${formattedHour < 10 ? '0' + formattedHour : formattedHour}:${mm} ${ampm}`;
+    return `${formattedHour < 10 ? '0' + formattedHour : formattedHour}:${mm} ${ampm}`;
+  };
+
+  const handleAddSubmit = (e) => {
+    e.preventDefault();
+    if (!newMedName || !newTime) return;
 
     addAlarm({
       medicineName: newMedName,
       dosage: newDosage,
       instruction: newInstruction,
       time: newTime,
-      timeLabel: timeLabel,
+      timeLabel: formatTimeLabel(newTime),
       patientName: newPatient
     });
 
     setNewMedName('');
     setShowAddForm(false);
+  };
+
+  const handleStartEdit = (alarm) => {
+    setEditingAlarmId(alarm.id);
+    setEditForm({
+      medicineName: alarm.medicineName || '',
+      dosage: alarm.dosage || '1 tablet',
+      instruction: alarm.instruction || '1-0-1 (BF)',
+      time: alarm.time || '20:00',
+      patientName: alarm.patientName || 'John Doe'
+    });
+  };
+
+  const handleSaveEdit = (e) => {
+    e.preventDefault();
+    if (!editingAlarmId) return;
+
+    updateAlarm(editingAlarmId, {
+      medicineName: editForm.medicineName,
+      dosage: editForm.dosage,
+      instruction: editForm.instruction,
+      time: editForm.time,
+      timeLabel: formatTimeLabel(editForm.time),
+      patientName: editForm.patientName
+    });
+
+    setEditingAlarmId(null);
   };
 
   return (
@@ -160,7 +199,7 @@ export default function MedicationAlarmModal({ isOpen, onClose }) {
                 <Play size={14} /> Test Alarm Sound
               </button>
               <button 
-                onClick={() => setShowAddForm(!showAddForm)} 
+                onClick={() => { setShowAddForm(!showAddForm); setEditingAlarmId(null); }} 
                 className="btn-pill btn-pill-outline" 
                 style={{ padding: '0.45rem 1rem', fontSize: '0.82rem' }}
               >
@@ -216,37 +255,100 @@ export default function MedicationAlarmModal({ isOpen, onClose }) {
             {/* Active Alarms List */}
             <div className="alarm-list">
               {alarms.length === 0 ? (
-                <div style={{ padding: '1.5rem', textWrap: 'balance', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                   No active medication alarms set.
                 </div>
               ) : (
                 alarms.map(alarm => (
                   <div key={alarm.id} className={`alarm-item ${alarm.enabled ? 'enabled' : 'disabled'}`}>
-                    <div className="alarm-item-left">
-                      <div className="alarm-item-time">{alarm.timeLabel || alarm.time}</div>
-                      <div>
-                        <div className="alarm-item-name">{alarm.medicineName} ({alarm.dosage})</div>
-                        <div className="alarm-item-sub">{alarm.instruction} • {alarm.patientName}</div>
-                      </div>
-                    </div>
+                    {editingAlarmId === alarm.id ? (
+                      /* Inline Edit Form */
+                      <form onSubmit={handleSaveEdit} className="alarm-edit-inline-form" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <input 
+                            type="text" 
+                            value={editForm.medicineName} 
+                            onChange={e => setEditForm({ ...editForm, medicineName: e.target.value })}
+                            placeholder="Medicine Name"
+                            style={{ flex: 1, padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}
+                            required
+                          />
+                          <input 
+                            type="time" 
+                            value={editForm.time} 
+                            onChange={e => setEditForm({ ...editForm, time: e.target.value })}
+                            style={{ padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}
+                            required
+                          />
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <input 
+                            type="text" 
+                            value={editForm.dosage} 
+                            onChange={e => setEditForm({ ...editForm, dosage: e.target.value })}
+                            placeholder="Dosage (e.g. 1 tablet)"
+                            style={{ flex: 1, padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}
+                          />
+                          <select 
+                            value={editForm.instruction} 
+                            onChange={e => setEditForm({ ...editForm, instruction: e.target.value })}
+                            style={{ flex: 1, padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}
+                          >
+                            <option value="1-0-1 (BF)">1-0-1 (BF) - Twice Daily</option>
+                            <option value="1-0-1 (AF)">1-0-1 (AF) - Twice Daily</option>
+                            <option value="1-0-0 (BF)">1-0-0 (BF) - Morning</option>
+                            <option value="1-0-0 (AF)">1-0-0 (AF) - Morning</option>
+                            <option value="0-0-1 (AF)">0-0-1 (AF) - Night</option>
+                            <option value="1-1-1 (AF)">1-1-1 (AF) - Thrice Daily</option>
+                          </select>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.2rem' }}>
+                          <button type="submit" className="btn-pill btn-pill-navy" style={{ padding: '0.35rem 0.85rem', fontSize: '0.78rem' }}>
+                            <Save size={14} /> Save
+                          </button>
+                          <button type="button" onClick={() => setEditingAlarmId(null)} className="btn-pill btn-pill-outline" style={{ padding: '0.35rem 0.85rem', fontSize: '0.78rem' }}>
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      /* Normal Display Row */
+                      <>
+                        <div className="alarm-item-left">
+                          <div className="alarm-item-time">{alarm.timeLabel || alarm.time}</div>
+                          <div>
+                            <div className="alarm-item-name">{alarm.medicineName} ({alarm.dosage})</div>
+                            <div className="alarm-item-sub">{alarm.instruction} • {alarm.patientName}</div>
+                          </div>
+                        </div>
 
-                    <div className="alarm-item-right">
-                      <button 
-                        type="button" 
-                        onClick={() => toggleAlarmEnabled(alarm.id)} 
-                        className={`alarm-toggle-btn ${alarm.enabled ? 'active' : ''}`}
-                      >
-                        {alarm.enabled ? 'ON' : 'OFF'}
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={() => deleteAlarm(alarm.id)} 
-                        className="alarm-delete-btn"
-                        title="Delete Alarm"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
+                        <div className="alarm-item-right">
+                          <button 
+                            type="button" 
+                            onClick={() => toggleAlarmEnabled(alarm.id)} 
+                            className={`alarm-toggle-btn ${alarm.enabled ? 'active' : ''}`}
+                          >
+                            {alarm.enabled ? 'ON' : 'OFF'}
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={() => handleStartEdit(alarm)} 
+                            className="alarm-edit-btn"
+                            title="Edit Medication Alarm"
+                          >
+                            <Pencil size={15} />
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={() => deleteAlarm(alarm.id)} 
+                            className="alarm-delete-btn"
+                            title="Delete Alarm"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))
               )}

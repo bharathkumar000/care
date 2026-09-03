@@ -74,6 +74,12 @@ export function addAlarm(newAlarm) {
   return created;
 }
 
+export function updateAlarm(alarmId, updatedFields) {
+  const alarms = getAlarms();
+  const updated = alarms.map(a => a.id === alarmId ? { ...a, ...updatedFields } : a);
+  saveAlarms(updated);
+}
+
 export function toggleAlarmEnabled(alarmId) {
   const alarms = getAlarms();
   const updated = alarms.map(a => a.id === alarmId ? { ...a, enabled: !a.enabled } : a);
