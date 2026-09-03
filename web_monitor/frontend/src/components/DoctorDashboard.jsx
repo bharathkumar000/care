@@ -27,6 +27,11 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } fro
 import { getCarePlanForPatient, saveCarePlanForPatient, subscribeCarePlan } from '../utils/carePlanStore';
 import { getEmergencyEvents, recordPanicEvent, updateEventStatus, subscribeEmergencyEvents } from '../utils/emergencyEventStore';
 import { addAlarm } from '../utils/medicationAlarmStore';
+import { Sparkles, Calendar, Stethoscope, Printer, CheckCircle2 } from 'lucide-react';
+import { analyzeCardiacRhythm } from '../utils/aiECGAnalyzer';
+import { getVitalsLogs, subscribeVitalsLogs } from '../utils/dailyVitalsStore';
+import { getAppointments, updateAppointmentStatus, subscribeAppointments } from '../utils/appointmentStore';
+import ClinicalReportModal from './ClinicalReportModal';
 
 export default function DoctorDashboard({ 
   data = { hr: null, gsr: null, panic: 0 }, 
@@ -89,9 +94,12 @@ export default function DoctorDashboard({
   const [tempThresholds, setTempThresholds] = useState({ ...thresholds });
   const [sessionLogs, setSessionLogs] = useState([]);
 
-  // Shared Care Plan & Emergency Events State for Selected Patient
+  // Shared Care Plan, Emergency Events, Vitals & Appointments State for Selected Patient
   const [carePlan, setCarePlan] = useState(() => getCarePlanForPatient(selectedPatient || 1));
   const [emergencyEvents, setEmergencyEvents] = useState(() => getEmergencyEvents(selectedPatient || 1));
+  const [vitalsLogs, setVitalsLogs] = useState(() => getVitalsLogs(selectedPatient || 1));
+  const [appointments, setAppointments] = useState(() => getAppointments(selectedPatient || 1));
+  const [isReportOpen, setIsReportOpen] = useState(false);
 
   useEffect(() => {
     fetchPatients();
@@ -101,6 +109,8 @@ export default function DoctorDashboard({
     if (selectedPatient) {
       setCarePlan(getCarePlanForPatient(selectedPatient));
       setEmergencyEvents(getEmergencyEvents(selectedPatient));
+      setVitalsLogs(getVitalsLogs(selectedPatient));
+      setAppointments(getAppointments(selectedPatient));
     }
   }, [selectedPatient]);
 
@@ -115,9 +125,22 @@ export default function DoctorDashboard({
         setEmergencyEvents(getEmergencyEvents(selectedPatient));
       }
     });
+    const unsubVit = subscribeVitalsLogs(() => {
+      if (selectedPatient) {
+        setVitalsLogs(getVitalsLogs(selectedPatient));
+      }
+    });
+    const unsubApt = subscribeAppointments(() => {
+      if (selectedPatient) {
+        setAppointments(getAppointments(selectedPatient));
+      }
+    });
+
     return () => {
       unsubCare();
       unsubEmg();
+      unsubVit();
+      unsubApt();
     };
   }, [selectedPatient]);
 
@@ -513,6 +536,9 @@ export default function DoctorDashboard({
                 </div>
               </div>
               <div className="clinical-actions">
+                <button className="clinical-btn" onClick={() => setIsReportOpen(true)} style={{ background: 'var(--primary)', color: 'white', fontWeight: 600 }}>
+                  <Printer size={16} /> Export Clinical PDF
+                </button>
                 <button className="clinical-btn" onClick={() => setShowHistoryModal(true)}>
                   <FileText size={16} /> View History
                 </button>
@@ -542,6 +568,44 @@ export default function DoctorDashboard({
                 </button>
               </div>
             )}
+
+            {/* AI-POWERED ARRHYTHMIA & ANOMALY DIAGNOSTIC BADGE */}
+            {(() => {
+              const aiAnalysis = analyzeCardiacRhythm(data);
+              return (
+                <div style={{ 
+                  backgroundColor: 'white', 
+                  borderRadius: '12px', 
+                  padding: '1rem 1.25rem', 
+                  border: `1px solid ${aiAnalysis.riskColor}`, 
+                  borderLeft: `5px solid ${aiAnalysis.riskColor}`,
+                  boxShadow: 'var(--shadow-card)',
+                  marginBottom: '1.25rem' 
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.04em' }}>
+                      <Sparkles size={18} color={aiAnalysis.riskColor} />
+                      <span>AI CARDIAC RHYTHM DIAGNOSIS ENGINE</span>
+                    </div>
+                    <span style={{ 
+                      padding: '0.25rem 0.75rem', 
+                      borderRadius: '9999px', 
+                      backgroundColor: aiAnalysis.riskColor, 
+                      color: 'white', 
+                      fontWeight: 700, 
+                      fontSize: '0.78rem' 
+                    }}>
+                      {aiAnalysis.riskLevel} • {aiAnalysis.confidence}% AI Confidence
+                    </span>
+                  </div>
+                  <h3 style={{ margin: '0 0 0.2rem 0', color: aiAnalysis.riskColor, fontSize: '1.15rem', fontWeight: 700 }}>{aiAnalysis.rhythm}</h3>
+                  <p style={{ margin: '0 0 0.35rem 0', fontSize: '0.88rem', color: 'var(--text-main)' }}>{aiAnalysis.description}</p>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                    <strong>Clinical Action:</strong> {aiAnalysis.recommendation}
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="stats-grid">
               <div className="stat-card">
@@ -859,6 +923,94 @@ export default function DoctorDashboard({
               <div className="doc-notes-box">
                 {carePlan.careNotes ? `"${carePlan.careNotes}"` : <em>No care notes entered.</em>}
               </div>
+            </section>
+
+            {/* E. PATIENT DAILY VITALS & SYMPTOMS HISTORY */}
+            <section className="care-section-card">
+              <div className="care-section-header">
+                <div className="care-section-title-group">
+                  <Stethoscope size={22} color="var(--primary)" />
+                  <h3>Patient Daily Vitals & Symptoms Log</h3>
+                </div>
+                <span className="care-section-badge">Patient Recorded Log</span>
+              </div>
+              {vitalsLogs.length > 0 ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.85rem' }}>
+                  {vitalsLogs.map(log => (
+                    <div key={log.id} style={{ backgroundColor: 'var(--surface-ice)', border: '1px solid var(--border-subtle)', borderRadius: '10px', padding: '0.85rem 1rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        <span>📅 {log.date} • {log.time}</span>
+                        <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{log.bpDisplay}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary)', marginBottom: '0.4rem' }}>
+                        <span>SpO2: <strong>{log.spO2}%</strong></span>
+                        <span>Temp: <strong>{log.temperature}°F</strong></span>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        {log.symptoms?.map((s, i) => (
+                          <span key={i} style={{ fontSize: '0.72rem', backgroundColor: 'white', border: '1px solid var(--border-subtle)', padding: '2px 6px', borderRadius: '4px', color: '#475569' }}>
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                  No daily vitals logged by patient yet.
+                </div>
+              )}
+            </section>
+
+            {/* F. DOCTOR TELECONSULTATION APPOINTMENTS QUEUE */}
+            <section className="care-section-card">
+              <div className="care-section-header">
+                <div className="care-section-title-group">
+                  <Calendar size={22} color="var(--primary)" />
+                  <h3>Teleconsultation Appointments Queue</h3>
+                </div>
+                <span className="care-section-badge">Patient Requested Appointments</span>
+              </div>
+              {appointments.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {appointments.map(apt => (
+                    <div key={apt.id} style={{ backgroundColor: 'var(--bg-page)', border: '1px solid var(--border-subtle)', borderRadius: '10px', padding: '0.85rem 1.1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: 'var(--primary)' }}>
+                          <span>{apt.mode === 'Video Call' ? '📹 Video Call' : '🏥 In-Person'} for {apt.patientName}</span>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>• {apt.displayDate || apt.date} at {apt.timeSlot}</span>
+                        </div>
+                        <div style={{ fontSize: '0.84rem', color: 'var(--text-main)', marginTop: '0.2rem' }}>
+                          Reason: {apt.reason}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ padding: '0.3rem 0.8rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700, backgroundColor: apt.status === 'Confirmed' ? '#d1fae5' : '#fef3c7', color: apt.status === 'Confirmed' ? '#065f46' : '#92400e' }}>
+                          {apt.status}
+                        </span>
+                        {apt.status !== 'Confirmed' && (
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              updateAppointmentStatus(apt.id, 'Confirmed');
+                              showToast(`Appointment confirmed for ${apt.displayDate || apt.date}`);
+                            }}
+                            className="btn-pill btn-pill-navy"
+                            style={{ padding: '0.3rem 0.75rem', fontSize: '0.78rem' }}
+                          >
+                            <CheckCircle2 size={13} /> Confirm Slot
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                  No upcoming teleconsultation requests for this patient.
+                </div>
+              )}
             </section>
           </>
         ) : (
@@ -1517,6 +1669,17 @@ export default function DoctorDashboard({
           </div>
         </div>
       )}
+
+      {/* CLINICAL REPORT MODAL */}
+      <ClinicalReportModal 
+        isOpen={isReportOpen} 
+        onClose={() => setIsReportOpen(false)} 
+        patientData={selectedPatientData || { id: selectedPatient, name: 'Patient', age: 45, gender: 'Male' }}
+        currentTelemetry={data}
+        carePlan={carePlan}
+        emergencyEvents={emergencyEvents}
+        dailyVitals={vitalsLogs}
+      />
     </div>
   );
 }

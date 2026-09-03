@@ -16,11 +16,22 @@ import {
   Sunset, 
   Moon, 
   Info,
-  UserCheck 
+  UserCheck,
+  Sparkles,
+  Calendar,
+  Stethoscope,
+  Printer,
+  Plus
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { getCarePlanForPatient, subscribeCarePlan } from '../utils/carePlanStore';
 import { getEmergencyEvents, subscribeEmergencyEvents } from '../utils/emergencyEventStore';
+import { analyzeCardiacRhythm } from '../utils/aiECGAnalyzer';
+import { getVitalsLogs, subscribeVitalsLogs } from '../utils/dailyVitalsStore';
+import { getAppointments, subscribeAppointments } from '../utils/appointmentStore';
+import ClinicalReportModal from './ClinicalReportModal';
+import AppointmentModal from './AppointmentModal';
+import VitalsLoggerModal from './VitalsLoggerModal';
 
 // --- REUSABLE CARE COMPONENTS ---
 function PrescriptionCard({ rx }) {
@@ -49,73 +60,60 @@ function PrescriptionCard({ rx }) {
         </div>
       </div>
       <div className="rx-footer">
-        <span className="rx-prescribed-by">Prescribed by {rx.prescribedBy || 'Dr. Sarah'} ({rx.prescribedDate || 'Recent'})</span>
-        <span className="rx-next-dose">
-          <Clock size={14} /> Next: {rx.nextDose || 'Scheduled'}
-        </span>
+        <span className="rx-prescribed-by">Prescribed by Dr. Sarah</span>
+        <span className="rx-next-dose">Next: {rx.nextDose || '08:00 PM'}</span>
       </div>
     </div>
   );
 }
 
-function DietPlan({ dietPlan, lastUpdated }) {
-  const meals = [
-    { type: 'Breakfast', time: '08:00 AM - 09:00 AM', items: dietPlan?.breakfast || [] },
-    { type: 'Lunch', time: '01:00 PM - 02:00 PM', items: dietPlan?.lunch || [] },
-    { type: 'Evening Snack', time: '05:00 PM - 05:30 PM', items: dietPlan?.eveningSnack || [] },
-    { type: 'Dinner', time: '08:00 PM - 09:00 PM', items: dietPlan?.dinner || [] }
-  ];
-
-  const getMealIcon = (type) => {
-    switch (type) {
-      case 'Breakfast': return <Coffee size={18} />;
-      case 'Lunch': return <Sun size={18} />;
-      case 'Evening Snack': return <Sunset size={18} />;
-      case 'Dinner': return <Moon size={18} />;
-      default: return <Utensils size={18} />;
-    }
-  };
-
+function DietPlan({ dietPlan = {}, lastUpdated }) {
   return (
     <section className="care-section-card">
       <div className="care-section-header">
         <div className="care-section-title-group">
           <Utensils size={22} color="var(--primary)" />
-          <h3>MY DIET PLAN</h3>
+          <h3>MY DIET & NUTRITION PLAN</h3>
         </div>
         <span className="care-section-badge">
-          Prepared by Dr. Sarah • Updated {lastUpdated || 'Recently'}
+          Updated: {lastUpdated || 'Recently'}
         </span>
       </div>
       <div className="diet-grid">
-        {meals.map((meal, index) => (
-          <div key={index} className="meal-card">
-            <div className="meal-header">
-              <div className="meal-icon">
-                {getMealIcon(meal.type)}
-              </div>
-              <div>
-                <div className="meal-title">{meal.type}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{meal.time}</div>
-              </div>
-            </div>
-            <ul className="meal-items">
-              {meal.items.length > 0 ? (
-                meal.items.map((item, idx) => (
-                  <li key={idx} className="meal-item">{item}</li>
-                ))
-              ) : (
-                <li className="meal-item" style={{ fontStyle: 'italic', opacity: 0.6 }}>No specific items</li>
-              )}
-            </ul>
+        <div className="diet-meal-card">
+          <div className="diet-meal-header">
+            <Coffee size={18} color="var(--primary)" />
+            <span>BREAKFAST</span>
           </div>
-        ))}
+          <p className="diet-meal-text">{dietPlan.breakfast || 'Oatmeal, fresh berries, and green tea.'}</p>
+        </div>
+        <div className="diet-meal-card">
+          <div className="diet-meal-header">
+            <Sun size={18} color="var(--primary)" />
+            <span>LUNCH</span>
+          </div>
+          <p className="diet-meal-text">{dietPlan.lunch || 'Grilled chicken salad with olive oil dressing.'}</p>
+        </div>
+        <div className="diet-meal-card">
+          <div className="diet-meal-header">
+            <Sunset size={18} color="var(--primary)" />
+            <span>SNACKS</span>
+          </div>
+          <p className="diet-meal-text">{dietPlan.snacks || 'Handful of almonds and apple slices.'}</p>
+        </div>
+        <div className="diet-meal-card">
+          <div className="diet-meal-header">
+            <Moon size={18} color="var(--primary)" />
+            <span>DINNER</span>
+          </div>
+          <p className="diet-meal-text">{dietPlan.dinner || 'Steamed salmon with quinoa and vegetables.'}</p>
+        </div>
       </div>
     </section>
   );
 }
 
-function DoctorInstructions({ instructions = [], careNotes = '', lastUpdated = '' }) {
+function DoctorInstructions({ instructions = [], careNotes, lastUpdated }) {
   return (
     <section className="care-section-card">
       <div className="care-section-header">
@@ -196,51 +194,50 @@ function EmergencyHistory({ events = [] }) {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   flexWrap: 'wrap',
-                  gap: '0.75rem'
+                  gap: '1rem'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{
-                    width: '2.5rem',
-                    height: '2.5rem',
-                    borderRadius: '50%',
-                    backgroundColor: evt.status === 'Active' ? 'rgba(225, 29, 72, 0.12)' : 'var(--surface-ice)',
-                    color: evt.status === 'Active' ? 'var(--alert)' : 'var(--primary)',
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '10px',
+                    backgroundColor: 'var(--surface-ice)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0
                   }}>
-                    <AlertTriangle size={20} />
+                    <AlertTriangle size={22} color="var(--primary)" />
                   </div>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--primary)' }}>
-                      🚨 {evt.eventType}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                      <span style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '1rem' }}>
+                        🚨 {evt.eventType}
+                      </span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                        {evt.displayTime || evt.timestamp}
+                      </span>
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
-                      {evt.displayTime || evt.timestamp}
-                    </div>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-main)', marginTop: '0.25rem' }}>
-                      "{evt.description}"
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', marginTop: '0.2rem' }}>
+                      "{evt.description || 'Emergency telemetry alert recorded.'}"
                     </div>
                   </div>
                 </div>
-                <div>
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      borderRadius: '9999px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                      backgroundColor: evt.status === 'Active' ? 'rgba(225, 29, 72, 0.12)' : (isAck ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)'),
-                      color: evt.status === 'Active' ? 'var(--alert)' : (isAck ? '#d97706' : '#059669'),
-                      fontSize: '0.75rem',
-                      padding: '0.35rem 0.85rem',
-                      border: evt.status === 'Active' ? '1px solid rgba(225, 29, 72, 0.3)' : (isAck ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)')
-                    }}
-                  >
-                    Status: {evt.status}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ textAlign: 'right', fontSize: '0.8rem' }}>
+                    <div>Heart Rate: <strong>{evt.heartRate || '--'} BPM</strong></div>
+                    <div>Stress GSR: <strong>{evt.stressValue || '--'}</strong></div>
+                  </div>
+                  <span style={{
+                    padding: '0.35rem 0.85rem',
+                    borderRadius: '9999px',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    backgroundColor: isResolved ? '#d1fae5' : isAck ? '#fef3c7' : '#fee2e2',
+                    color: isResolved ? '#065f46' : isAck ? '#92400e' : '#991b1b'
+                  }}>
+                    {evt.status || 'Active'}
                   </span>
                 </div>
               </div>
@@ -277,14 +274,26 @@ export default function UserDashboard({
   const loggedPatientId = getLoggedPatientId(auth);
   const [carePlan, setCarePlan] = useState(() => getCarePlanForPatient(loggedPatientId));
   const [emergencyEvents, setEmergencyEvents] = useState(() => getEmergencyEvents(loggedPatientId));
+  const [vitalsLogs, setVitalsLogs] = useState(() => getVitalsLogs(loggedPatientId));
+  const [appointments, setAppointments] = useState(() => getAppointments(loggedPatientId));
+
+  // Modal States
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isAptOpen, setIsAptOpen] = useState(false);
+  const [isVitalsOpen, setIsVitalsOpen] = useState(false);
 
   const isPanic = data.panic === 1 || data.panic === true;
   const isLive = isConnected && hasReceivedData && data.hr !== null;
+
+  // AI Rhythm Analysis
+  const aiAnalysis = analyzeCardiacRhythm(data);
 
   // Sync care plan and emergency events when logged patient ID changes or store updates
   useEffect(() => {
     setCarePlan(getCarePlanForPatient(loggedPatientId));
     setEmergencyEvents(getEmergencyEvents(loggedPatientId));
+    setVitalsLogs(getVitalsLogs(loggedPatientId));
+    setAppointments(getAppointments(loggedPatientId));
   }, [loggedPatientId]);
 
   useEffect(() => {
@@ -294,9 +303,18 @@ export default function UserDashboard({
     const unsubEmg = subscribeEmergencyEvents(() => {
       setEmergencyEvents(getEmergencyEvents(loggedPatientId));
     });
+    const unsubVit = subscribeVitalsLogs(() => {
+      setVitalsLogs(getVitalsLogs(loggedPatientId));
+    });
+    const unsubApt = subscribeAppointments(() => {
+      setAppointments(getAppointments(loggedPatientId));
+    });
+
     return () => {
       unsubCare();
       unsubEmg();
+      unsubVit();
+      unsubApt();
     };
   }, [loggedPatientId]);
 
@@ -337,7 +355,7 @@ export default function UserDashboard({
 
   const currentStatus = getMonitoringStatus();
 
-  // Helper for GSR qualitative indicator (neutral descriptor)
+  // Helper for GSR qualitative indicator
   const getStressDescriptor = (gsr) => {
     if (gsr === null || !isLive) return 'Waiting for data';
     if (gsr > 520) return 'Elevated stress response';
@@ -347,7 +365,30 @@ export default function UserDashboard({
 
   return (
     <main className="dashboard user-dashboard">
-      {/* PERSONALIZED PATIENT PROFILE HEADER (NO SELECTOR) */}
+      {/* MODALS */}
+      <ClinicalReportModal 
+        isOpen={isReportOpen} 
+        onClose={() => setIsReportOpen(false)} 
+        patientData={{ id: loggedPatientId, name: carePlan.patientName || 'John Doe', age: 45, gender: 'Male' }}
+        currentTelemetry={data}
+        carePlan={carePlan}
+        emergencyEvents={emergencyEvents}
+        dailyVitals={vitalsLogs}
+      />
+
+      <AppointmentModal 
+        isOpen={isAptOpen} 
+        onClose={() => setIsAptOpen(false)} 
+        patientData={{ id: loggedPatientId, name: carePlan.patientName || 'John Doe' }}
+      />
+
+      <VitalsLoggerModal 
+        isOpen={isVitalsOpen} 
+        onClose={() => setIsVitalsOpen(false)} 
+        patientData={{ id: loggedPatientId, name: carePlan.patientName || 'John Doe' }}
+      />
+
+      {/* PERSONALIZED PATIENT PROFILE HEADER + FEATURE ACTION TOOLBAR */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -356,22 +397,73 @@ export default function UserDashboard({
         gap: '0.75rem',
         backgroundColor: 'var(--surface-card)',
         padding: '0.85rem 1.25rem',
-        borderRadius: '10px',
+        borderRadius: '12px',
         border: '1px solid var(--border-subtle)',
         fontSize: '0.9rem'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontWeight: 600, color: 'var(--primary)' }}>
           <UserCheck size={20} />
-          <span>Patient Account: {carePlan.patientName || `Patient #${loggedPatientId}`}</span>
+          <span>Patient Account: {carePlan.patientName || `Patient #${loggedPatientId}`} (PAT-00{loggedPatientId})</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-          <span>Medical ID: <strong>PAT-00{loggedPatientId}</strong></span>
-          <span>•</span>
-          <span>Role: <strong>Patient (Read-Only)</strong></span>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button 
+            onClick={() => setIsVitalsOpen(true)} 
+            className="btn-pill btn-pill-outline" 
+            style={{ padding: '0.4rem 0.9rem', fontSize: '0.82rem' }}
+          >
+            <Stethoscope size={15} /> Log Daily Vitals
+          </button>
+          <button 
+            onClick={() => setIsAptOpen(true)} 
+            className="btn-pill btn-pill-outline" 
+            style={{ padding: '0.4rem 0.9rem', fontSize: '0.82rem' }}
+          >
+            <Calendar size={15} /> Book Teleconsultation
+          </button>
+          <button 
+            onClick={() => setIsReportOpen(true)} 
+            className="btn-pill btn-pill-navy" 
+            style={{ padding: '0.4rem 1rem', fontSize: '0.82rem' }}
+          >
+            <Printer size={15} /> Export Clinical PDF
+          </button>
         </div>
       </div>
 
-      {/* SECTION 6 — EMERGENCY / PANIC ALERT BANNER */}
+      {/* FEATURE 1 — AI-POWERED ARRHYTHMIA & ANOMALY DIAGNOSTIC BADGE */}
+      <div style={{ 
+        backgroundColor: 'white', 
+        borderRadius: '12px', 
+        padding: '1.1rem 1.35rem', 
+        border: `1px solid ${aiAnalysis.riskColor}`, 
+        borderLeft: `5px solid ${aiAnalysis.riskColor}`,
+        boxShadow: 'var(--shadow-card)' 
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.04em' }}>
+            <Sparkles size={18} color={aiAnalysis.riskColor} />
+            <span>AI CARDIAC RHYTHM DIAGNOSIS ENGINE</span>
+          </div>
+          <span style={{ 
+            padding: '0.25rem 0.75rem', 
+            borderRadius: '9999px', 
+            backgroundColor: aiAnalysis.riskColor, 
+            color: 'white', 
+            fontWeight: 700, 
+            fontSize: '0.78rem' 
+          }}>
+            {aiAnalysis.riskLevel} • {aiAnalysis.confidence}% AI Confidence
+          </span>
+        </div>
+        <h3 style={{ margin: '0 0 0.25rem 0', color: aiAnalysis.riskColor, fontSize: '1.2rem', fontWeight: 700 }}>{aiAnalysis.rhythm}</h3>
+        <p style={{ margin: '0 0 0.4rem 0', fontSize: '0.88rem', color: 'var(--text-main)' }}>{aiAnalysis.description}</p>
+        <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+          <strong>Clinical Recommendation:</strong> {aiAnalysis.recommendation}
+        </div>
+      </div>
+
+      {/* EMERGENCY / PANIC ALERT BANNER */}
       {isPanic && (
         <section className="panic-banner" role="alert" aria-live="assertive">
           <div className="panic-banner-content">
@@ -386,7 +478,7 @@ export default function UserDashboard({
         </section>
       )}
 
-      {/* SECTION 5 — CURRENT HEALTH STATUS */}
+      {/* CURRENT HEALTH STATUS */}
       <section className={`health-status-card status-${currentStatus.level}`}>
         <div className="health-status-header">
           <div className="status-title-group">
@@ -403,7 +495,6 @@ export default function UserDashboard({
 
       {/* METRICS GRID: HEART RATE & STRESS INDEX */}
       <section className="stats-grid">
-        {/* SECTION 1 — HEART RATE */}
         <div className={`stat-card ${isPanic ? 'card-panic' : ''}`}>
           <div className={`stat-icon ${isPanic ? 'alert' : ''}`}>
             <Heart size={32} className={isLive ? 'pulse-heart' : ''} />
@@ -427,7 +518,6 @@ export default function UserDashboard({
           </div>
         </div>
 
-        {/* SECTION 2 — STRESS INDEX */}
         <div className={`stat-card ${isPanic ? 'card-panic' : ''}`}>
           <div className={`stat-icon ${isPanic ? 'alert' : ''}`}>
             <Activity size={32} />
@@ -448,7 +538,7 @@ export default function UserDashboard({
         </div>
       </section>
 
-      {/* SECTION 3 — LIVE ECG WAVEFORM */}
+      {/* LIVE ECG WAVEFORM */}
       <section className="chart-container">
         <div className="chart-header">
           <div className="chart-title">
@@ -497,10 +587,87 @@ export default function UserDashboard({
         </div>
       </section>
 
-      {/* SECTION 4 — EMERGENCY HISTORY */}
+      {/* FEATURE 3 — DAILY VITALS & SYMPTOM LOG HISTORY */}
+      <section className="care-section-card">
+        <div className="care-section-header">
+          <div className="care-section-title-group">
+            <Stethoscope size={22} color="var(--primary)" />
+            <h3>DAILY VITALS & SYMPTOMS LOG HISTORY</h3>
+          </div>
+          <button onClick={() => setIsVitalsOpen(true)} className="btn-pill btn-pill-outline" style={{ padding: '0.35rem 0.85rem', fontSize: '0.8rem' }}>
+            <Plus size={14} /> Log Today's Vitals
+          </button>
+        </div>
+        {vitalsLogs.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.85rem' }}>
+            {vitalsLogs.map(log => (
+              <div key={log.id} style={{ backgroundColor: 'var(--surface-ice)', border: '1px solid var(--border-subtle)', borderRadius: '10px', padding: '0.85rem 1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  <span>📅 {log.date} • {log.time}</span>
+                  <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{log.bpDisplay}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary)', marginBottom: '0.4rem' }}>
+                  <span>SpO2: <strong>{log.spO2}%</strong></span>
+                  <span>Temp: <strong>{log.temperature}°F</strong></span>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                  {log.symptoms?.map((s, i) => (
+                    <span key={i} style={{ fontSize: '0.72rem', backgroundColor: 'white', border: '1px solid var(--border-subtle)', padding: '2px 6px', borderRadius: '4px', color: '#475569' }}>
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+            No daily vitals logged yet. Click "+ Log Today's Vitals" to record your blood pressure and symptoms.
+          </div>
+        )}
+      </section>
+
+      {/* FEATURE 4 — DOCTOR TELECONSULTATION APPOINTMENTS */}
+      <section className="care-section-card">
+        <div className="care-section-header">
+          <div className="care-section-title-group">
+            <Calendar size={22} color="var(--primary)" />
+            <h3>MY DOCTOR TELECONSULTATIONS</h3>
+          </div>
+          <button onClick={() => setIsAptOpen(true)} className="btn-pill btn-pill-navy" style={{ padding: '0.35rem 0.85rem', fontSize: '0.8rem' }}>
+            <Plus size={14} /> Book Consultation
+          </button>
+        </div>
+        {appointments.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {appointments.map(apt => (
+              <div key={apt.id} style={{ backgroundColor: 'var(--bg-page)', border: '1px solid var(--border-subtle)', borderRadius: '10px', padding: '0.85rem 1.1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: 'var(--primary)' }}>
+                    <span>{apt.mode === 'Video Call' ? '📹 Video Call' : '🏥 In-Person'} with {apt.doctorName}</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>• {apt.displayDate || apt.date} at {apt.timeSlot}</span>
+                  </div>
+                  <div style={{ fontSize: '0.84rem', color: 'var(--text-main)', marginTop: '0.2rem' }}>
+                    Reason: {apt.reason}
+                  </div>
+                </div>
+                <span style={{ padding: '0.3rem 0.8rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700, backgroundColor: apt.status === 'Confirmed' ? '#d1fae5' : '#fef3c7', color: apt.status === 'Confirmed' ? '#065f46' : '#92400e' }}>
+                  {apt.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+            No upcoming teleconsultations. Click "+ Book Consultation" to schedule a slot with Dr. Sarah.
+          </div>
+        )}
+      </section>
+
+      {/* EMERGENCY HISTORY */}
       <EmergencyHistory events={emergencyEvents} />
 
-      {/* SECTION 5 — MY PRESCRIPTIONS */}
+      {/* MY PRESCRIPTIONS */}
       <section className="care-section-card">
         <div className="care-section-header">
           <div className="care-section-title-group">
@@ -524,10 +691,10 @@ export default function UserDashboard({
         )}
       </section>
 
-      {/* SECTION 6 — MY DIET PLAN */}
+      {/* MY DIET PLAN */}
       <DietPlan dietPlan={carePlan.dietPlan} lastUpdated={carePlan.lastUpdated} />
 
-      {/* SECTION 7 — DOCTOR'S INSTRUCTIONS & CARE NOTES */}
+      {/* DOCTOR'S INSTRUCTIONS & CARE NOTES */}
       <DoctorInstructions 
         instructions={carePlan.doctorInstructions} 
         careNotes={carePlan.careNotes} 
