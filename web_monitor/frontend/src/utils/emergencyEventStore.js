@@ -1,20 +1,8 @@
 // Centralized Emergency Event Store for C.A.R.E. Web Monitor
 
-const STORAGE_KEY = 'care_emergency_events_v1';
+const STORAGE_KEY = 'care_emergency_events_v2';
 
 const DEFAULT_EMERGENCY_EVENTS = [
-  {
-    id: "EVT-101",
-    patientId: 1,
-    patientName: "John Doe",
-    timestamp: "2026-09-02T10:42:00",
-    displayTime: "02 Sep 2026 • 10:42 AM",
-    eventType: "Panic Button",
-    heartRate: 108,
-    stressValue: 535,
-    status: "Resolved",
-    description: "Emergency panic button activated by patient. Caregiver alerted."
-  },
   {
     id: "EVT-102",
     patientId: 1,
@@ -26,6 +14,18 @@ const DEFAULT_EMERGENCY_EVENTS = [
     stressValue: 580,
     status: "Acknowledged",
     description: "Elevated galvanic skin response (GSR > 520) recorded."
+  },
+  {
+    id: "EVT-101",
+    patientId: 1,
+    patientName: "John Doe",
+    timestamp: "2026-09-02T10:42:00",
+    displayTime: "02 Sep 2026 • 10:42 AM",
+    eventType: "Panic Button",
+    heartRate: 108,
+    stressValue: 535,
+    status: "Resolved",
+    description: "Emergency panic button activated by patient. Caregiver alerted."
   },
   {
     id: "EVT-201",
@@ -69,12 +69,15 @@ export function getEmergencyEvents(patientId = null) {
       events = DEFAULT_EMERGENCY_EVENTS;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
     }
-    
+
+    let filtered = events;
     if (patientId !== null && patientId !== undefined) {
       const numericId = Number(patientId);
-      return events.filter(e => Number(e.patientId) === numericId || e.patientId === patientId);
+      filtered = events.filter(e => Number(e.patientId) === numericId || e.patientId === patientId);
     }
-    return events;
+
+    // Always sort most recent events first (descending timestamp order)
+    return [...filtered].sort((a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime());
   } catch (err) {
     console.error("Failed to load emergency events", err);
     return DEFAULT_EMERGENCY_EVENTS;
@@ -84,7 +87,7 @@ export function getEmergencyEvents(patientId = null) {
 export function recordPanicEvent({ patientId = 1, patientName = "John Doe", heartRate = 85, stressValue = 500, eventType = "Panic Button" }) {
   const events = getEmergencyEvents();
   const now = new Date();
-  
+
   const newEvent = {
     id: `EVT-${Date.now().toString().slice(-4)}`,
     patientId: Number(patientId),
@@ -99,14 +102,14 @@ export function recordPanicEvent({ patientId = 1, patientName = "John Doe", hear
       ? "Emergency panic button activated by patient." 
       : `${eventType} telemetry warning recorded.`
   };
-  
+
   const updated = [newEvent, ...events];
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   } catch (e) {
     console.error("Failed to save emergency event", e);
   }
-  
+
   notifyListeners();
   return newEvent;
 }
@@ -119,13 +122,13 @@ export function updateEventStatus(eventId, newStatus) {
     }
     return evt;
   });
-  
+
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   } catch (e) {
     console.error("Failed to update event status", e);
   }
-  
+
   notifyListeners();
   return updated.find(e => e.id === eventId);
 }

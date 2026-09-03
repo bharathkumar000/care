@@ -170,6 +170,8 @@ function DoctorInstructions({ instructions = [], careNotes = '', lastUpdated = '
 }
 
 function EmergencyHistory({ events = [] }) {
+  const sortedEvents = [...events].sort((a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime());
+
   return (
     <section className="care-section-card">
       <div className="care-section-header">
@@ -181,9 +183,9 @@ function EmergencyHistory({ events = [] }) {
           Read-Only • Patient History Log
         </span>
       </div>
-      {events.length > 0 ? (
+      {sortedEvents.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-          {events.map((evt) => {
+          {sortedEvents.map((evt) => {
             const isResolved = evt.status === 'Resolved';
             const isAck = evt.status === 'Acknowledged';
             return (
