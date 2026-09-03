@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { recordPanicEvent } from '../utils/emergencyEventStore';
 
 export function useECGData() {
   const [data, setData] = useState({ hr: null, gsr: null, panic: 0 });
@@ -10,6 +11,7 @@ export function useECGData() {
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const timeRef = useRef(0);
+  const prevPanicRef = useRef(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -39,6 +41,18 @@ export function useECGData() {
             const gsrVal = typeof parsed.gsr === 'number' ? parsed.gsr : null;
             const panicVal = parsed.panic === 1 || parsed.panic === true ? 1 : 0;
             const ecgVal = typeof parsed.ecg === 'number' ? parsed.ecg : 0;
+
+            // Trigger emergency event only on rising edge (0 -> 1)
+            if (prevPanicRef.current === 0 && panicVal === 1) {
+              recordPanicEvent({
+                patientId: 1,
+                patientName: "John Doe",
+                heartRate: hrVal || 85,
+                stressValue: gsrVal || 500,
+                eventType: "Panic Button"
+              });
+            }
+            prevPanicRef.current = panicVal;
 
             setData({
               hr: hrVal,
@@ -94,3 +108,4 @@ export function useECGData() {
 
   return { data, chartData, isConnected, connectionStatus, hasReceivedData };
 }
+

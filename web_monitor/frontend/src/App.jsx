@@ -35,6 +35,7 @@ function DashboardRouter({ auth, setAuth }) {
       )}
       {(auth.role === 'User' || !['Admin', 'Doctor'].includes(auth.role)) && (
         <UserDashboard 
+          auth={auth}
           data={data} 
           chartData={chartData} 
           isConnected={isConnected}
@@ -61,7 +62,8 @@ function App() {
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
     const email = localStorage.getItem('email');
-    return token ? { token, role, email } : null;
+    const patientId = localStorage.getItem('patientId') ? Number(localStorage.getItem('patientId')) : 1;
+    return token ? { token, role, email, patientId } : null;
   });
 
   return (

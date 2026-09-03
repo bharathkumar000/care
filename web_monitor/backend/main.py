@@ -45,7 +45,7 @@ SERIAL_PORT = 'COM3'
 BAUD_RATE = 115200
 
 # Auth Configuration
-SECRET_KEY = "super_secret_care_key"
+SECRET_KEY = "super_secret_care_key_telemetry_system_32bytes"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440
 
@@ -168,8 +168,8 @@ manager = ConnectionManager()
 def get_mock_data(start_time):
     current_time = time.time() - start_time
     ecg_value = 2048 + int(1000 * math.sin(current_time * 5) + 200 * math.sin(current_time * 20))
-    # Add a mock panic occasionally
-    panic = 1 if int(current_time) % 20 == 0 and current_time > 5 else 0
+    # Default panic is 0 to avoid telemetry event spamming
+    panic = 0
     return {
         "ecg": ecg_value,
         "hr": 72 + int(5 * math.sin(current_time * 0.5)),
