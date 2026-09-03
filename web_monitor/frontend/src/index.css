@@ -2531,4 +2531,304 @@ select.threshold-input option {
   border-color: var(--primary);
 }
 
+/* ==========================================================================
+   MEDICATION REMINDER ALARM SYSTEM STYLES
+   ========================================================================== */
+
+.alarm-bell-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: var(--surface-ice);
+  color: var(--primary);
+  border: 1px solid rgba(22, 59, 102, 0.15);
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.alarm-bell-btn:hover {
+  background-color: var(--primary);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.alarm-trigger-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.alarm-trigger-card {
+  background: white;
+  border-radius: 20px;
+  max-width: 480px;
+  width: 100%;
+  padding: 2rem;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+  border: 2px solid var(--accent-cyan);
+  animation: alarmPulseCard 1.5s infinite alternate ease-in-out;
+}
+
+@keyframes alarmPulseCard {
+  0% { box-shadow: 0 0 20px rgba(14, 165, 233, 0.3); }
+  100% { box-shadow: 0 0 40px rgba(14, 165, 233, 0.8); }
+}
+
+.alarm-trigger-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.alarm-bell-icon {
+  color: var(--accent-cyan);
+  animation: ringBell 0.6s infinite alternate;
+}
+
+@keyframes ringBell {
+  0% { transform: rotate(-15deg); }
+  100% { transform: rotate(15deg); }
+}
+
+.alarm-trigger-header h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 0;
+}
+
+.alarm-trigger-header p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.alarm-trigger-body {
+  margin-bottom: 1.5rem;
+}
+
+.alarm-med-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
+.alarm-med-detail {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+.alarm-instruction-tag {
+  background: var(--surface-ice);
+  color: var(--primary);
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+
+.alarm-time-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.alarm-trigger-actions {
+  display: flex;
+  gap: 0.65rem;
+}
+
+/* Alarm Manager Overlay */
+.alarm-manager-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.alarm-manager-card {
+  background: white;
+  border-radius: 18px;
+  max-width: 540px;
+  width: 100%;
+  padding: 1.75rem;
+  box-shadow: var(--shadow-hover);
+  border: 1px solid var(--border-subtle);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.alarm-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.alarm-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: 50%;
+}
+
+.alarm-close-btn:hover {
+  background: var(--surface-ice);
+  color: var(--primary);
+}
+
+.alarm-manager-controls {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.alarm-add-form {
+  background: var(--surface-ice);
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.alarm-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.alarm-form-row input {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  font-size: 0.85rem;
+}
+
+.alarm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  overflow-y: auto;
+  max-height: 320px;
+}
+
+.alarm-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.alarm-item.enabled {
+  border-left: 4px solid var(--primary);
+}
+
+.alarm-item.disabled {
+  opacity: 0.55;
+  border-left: 4px solid var(--text-muted);
+}
+
+.alarm-item-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.alarm-item-time {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--primary);
+  min-width: 75px;
+}
+
+.alarm-item-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.alarm-item-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.alarm-item-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.alarm-toggle-btn {
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.alarm-toggle-btn.active {
+  background: var(--success);
+  color: white;
+}
+
+.alarm-toggle-btn:not(.active) {
+  background: var(--border-subtle);
+  color: var(--text-muted);
+}
+
+.alarm-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+.alarm-delete-btn:hover {
+  color: var(--alert);
+}
+
+
 

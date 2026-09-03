@@ -6,10 +6,11 @@ import SharedHeader from './components/SharedHeader';
 import UserDashboard from './components/UserDashboard';
 import DoctorDashboard from './components/DoctorDashboard';
 import AdminDashboard from './components/AdminDashboard';
+import MedicationAlarmModal from './components/MedicationAlarmModal';
 import { useECGData } from './hooks/useECGData';
 import './index.css';
 
-function DashboardRouter({ auth, setAuth }) {
+function DashboardRouter({ auth, setAuth, onOpenAlarm }) {
   const { data, chartData, isConnected, connectionStatus, hasReceivedData } = useECGData();
   const navigate = useNavigate();
 
@@ -21,6 +22,7 @@ function DashboardRouter({ auth, setAuth }) {
         isConnected={isConnected} 
         connectionStatus={connectionStatus}
         navigate={navigate} 
+        onOpenAlarm={onOpenAlarm}
       />
       
       {auth.role === 'Admin' && <AdminDashboard isConnected={isConnected} />}
@@ -47,11 +49,11 @@ function DashboardRouter({ auth, setAuth }) {
   );
 }
 
-function MainLayout({ auth, setAuth, children }) {
+function MainLayout({ auth, setAuth, onOpenAlarm, children }) {
   const navigate = useNavigate();
   return (
     <div className="app-container">
-      <SharedHeader auth={auth} setAuth={setAuth} navigate={navigate} />
+      <SharedHeader auth={auth} setAuth={setAuth} navigate={navigate} onOpenAlarm={onOpenAlarm} />
       {children}
     </div>
   );
@@ -66,30 +68,36 @@ function App() {
     return token ? { token, role, email, patientId } : null;
   });
 
+  const [isAlarmModalOpen, setIsAlarmModalOpen] = useState(false);
+  const handleOpenAlarm = () => setIsAlarmModalOpen(true);
+  const handleCloseAlarm = () => setIsAlarmModalOpen(false);
+
   return (
     <BrowserRouter>
+      <MedicationAlarmModal isOpen={isAlarmModalOpen} onClose={handleCloseAlarm} />
+      
       <Routes>
         <Route path="/" element={
-          auth ? <DashboardRouter auth={auth} setAuth={setAuth} /> : (
-            <MainLayout auth={auth} setAuth={setAuth}>
+          auth ? <DashboardRouter auth={auth} setAuth={setAuth} onOpenAlarm={handleOpenAlarm} /> : (
+            <MainLayout auth={auth} setAuth={setAuth} onOpenAlarm={handleOpenAlarm}>
               <LandingPage />
             </MainLayout>
           )
         } />
         <Route path="/landing" element={
-          <MainLayout auth={auth} setAuth={setAuth}>
+          <MainLayout auth={auth} setAuth={setAuth} onOpenAlarm={handleOpenAlarm}>
             <LandingPage />
           </MainLayout>
         } />
         <Route path="/login" element={
           auth ? <Navigate to="/dashboard" /> : (
-            <MainLayout auth={auth} setAuth={setAuth}>
+            <MainLayout auth={auth} setAuth={setAuth} onOpenAlarm={handleOpenAlarm}>
               <Login setAuth={setAuth} />
             </MainLayout>
           )
         } />
         <Route path="/dashboard" element={
-          auth ? <DashboardRouter auth={auth} setAuth={setAuth} /> : <Navigate to="/login" />
+          auth ? <DashboardRouter auth={auth} setAuth={setAuth} onOpenAlarm={handleOpenAlarm} /> : <Navigate to="/login" />
         } />
       </Routes>
     </BrowserRouter>
