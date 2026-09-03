@@ -2066,8 +2066,18 @@ select.threshold-input option {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
   font-size: 0.8rem;
   color: var(--text-muted);
+  flex-wrap: nowrap;
+}
+
+.rx-prescribed-by {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
 .rx-next-dose {
@@ -2076,6 +2086,8 @@ select.threshold-input option {
   gap: 0.35rem;
   font-weight: 600;
   color: var(--primary-light);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Diet Plan Grid */

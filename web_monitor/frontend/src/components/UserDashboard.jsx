@@ -53,7 +53,7 @@ function PrescriptionCard({ rx }) {
         </div>
       </div>
       <div className="rx-footer">
-        <span>Prescribed by {rx.prescribedBy || 'Dr. Sarah'} ({rx.prescribedDate || 'Recent'})</span>
+        <span className="rx-prescribed-by">Prescribed by {rx.prescribedBy || 'Dr. Sarah'} ({rx.prescribedDate || 'Recent'})</span>
         <span className="rx-next-dose">
           <Clock size={14} /> Next: {rx.nextDose || 'Scheduled'}
         </span>
