@@ -36,9 +36,11 @@ export default function SharedHeader({ auth, setAuth, isConnected, connectionSta
       </ul>
       
       <div className="header-right">
-        <button className="alarm-bell-btn" onClick={onOpenAlarm} title="Medication Reminders & Alarms">
-          <Bell size={15} /> Medication Alarms
-        </button>
+        {auth?.role !== 'Doctor' && (
+          <button className="alarm-bell-btn" onClick={onOpenAlarm} title="Medication Reminders & Alarms">
+            <Bell size={15} /> Medication Alarms
+          </button>
+        )}
 
         <div className="status-badge">
           <div className={`status-dot ${status.className}`}></div>
