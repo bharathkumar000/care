@@ -741,34 +741,40 @@ body {
 }
 
 .modal-header {
-  padding: 1.1rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(180deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: var(--surface-ice);
+  border-radius: 12px 12px 0 0;
   flex-shrink: 0;
 }
 
+.modal-header h1,
+.modal-header h2,
+.modal-header h3,
+.modal-header h4,
 .modal-title {
   font-size: 1.15rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #ffffff;
+  color: var(--primary) !important;
   letter-spacing: -0.01em;
+  margin: 0;
 }
 
 .modal-title span {
-  color: #ffffff !important;
+  color: var(--primary) !important;
   font-weight: 700;
 }
 
 .modal-close-btn {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #94a3b8;
+  background: transparent;
+  border: none;
+  color: var(--primary) !important;
   cursor: pointer;
   padding: 0.45rem;
   border-radius: 8px;
@@ -779,9 +785,8 @@ body {
 }
 
 .modal-close-btn:hover {
-  background-color: rgba(239, 68, 68, 0.2);
-  color: #f87171;
-  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(22, 59, 102, 0.1);
+  color: var(--primary-dark) !important;
 }
 
 .modal-body {
@@ -1852,7 +1857,7 @@ select.threshold-input option {
   border-color: var(--primary-light) !important;
 }
 
-.metric-title, .modal-header h3, .table-header, .patient-name {
+.metric-title, .table-header, .patient-name {
   color: var(--primary) !important;
 }
 
