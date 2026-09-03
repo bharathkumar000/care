@@ -155,67 +155,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 5. SERVICES & MEMBER BENEFITS GRID (2-COLUMN) */}
-      <section id="services" className="benefits-section">
-        <div className="section-container">
-          <div className="section-tag">MEMBER BENEFITS & SERVICES</div>
-          <h2 className="section-heading">Access Tailored Clinical Solutions</h2>
 
-          <div className="benefits-grid">
-            <div className="benefit-card">
-              <div className="benefit-badge">Alfred</div>
-              <div className="benefit-body">
-                <h3>Medical Sensors & Telemetry</h3>
-                <p>
-                  High-frequency data acquisition module for ECG, Heart Rate (HR), and Galvanic Skin Response (GSR).
-                </p>
-                <button onClick={() => navigate('/login')} className="btn-pill btn-pill-outline" style={{ fontSize: '0.8rem', padding: '0.4rem 1.1rem' }}>
-                  Learn More
-                </button>
-              </div>
-            </div>
-
-            <div className="benefit-card">
-              <div className="benefit-badge">Cyber</div>
-              <div className="benefit-body">
-                <h3>Security & Privacy Compliance</h3>
-                <p>
-                  End-to-end encryption compliant with HIPAA, HDS, and GDPR standards for patient data protection.
-                </p>
-                <button onClick={() => navigate('/login')} className="btn-pill btn-pill-outline" style={{ fontSize: '0.8rem', padding: '0.4rem 1.1rem' }}>
-                  Learn More
-                </button>
-              </div>
-            </div>
-
-            <div className="benefit-card">
-              <div className="benefit-badge">Logic</div>
-              <div className="benefit-body">
-                <h3>Alert Management & Dispatch</h3>
-                <p>
-                  Intuitive interface for managing panic alerts, patient thresholds, and emergency call routing.
-                </p>
-                <button onClick={() => navigate('/login')} className="btn-pill btn-pill-outline" style={{ fontSize: '0.8rem', padding: '0.4rem 1.1rem' }}>
-                  Learn More
-                </button>
-              </div>
-            </div>
-
-            <div className="benefit-card">
-              <div className="benefit-badge">UI/UX</div>
-              <div className="benefit-body">
-                <h3>Ergonomic Clinical Design</h3>
-                <p>
-                  Modern interfaces engineered for clinical readability and rapid decision-making in critical scenarios.
-                </p>
-                <button onClick={() => navigate('/login')} className="btn-pill btn-pill-outline" style={{ fontSize: '0.8rem', padding: '0.4rem 1.1rem' }}>
-                  Learn More
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* 6. LATEST NEWS / UPDATES SECTION */}
       <section id="news" className="news-section">
