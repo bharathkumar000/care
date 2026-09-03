@@ -31,7 +31,6 @@ export default function SharedHeader({ auth, setAuth, isConnected, connectionSta
       <ul className="header-nav-links">
         <li className="header-nav-link" onClick={() => navigate && navigate('/')}>Home</li>
         <li className="header-nav-link" onClick={() => navigate && navigate('/landing#about')}>About</li>
-        <li className="header-nav-link" onClick={() => navigate && navigate('/landing#news')}>News</li>
       </ul>
       
       <div className="header-right">

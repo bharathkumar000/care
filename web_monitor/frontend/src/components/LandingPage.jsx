@@ -157,61 +157,6 @@ export default function LandingPage() {
 
 
 
-      {/* 6. LATEST NEWS / UPDATES SECTION */}
-      <section id="news" className="news-section">
-        <div className="section-container">
-          <div className="section-tag">NEWS & ANNOUNCEMENTS</div>
-          <h2 className="section-heading" style={{ color: 'var(--primary)' }}>Latest Updates</h2>
-
-          <div className="news-grid">
-            <div className="news-card">
-              <div>
-                <div className="news-date">
-                  <FileText size={14} /> September 02, 2026
-                </div>
-                <h3>The Future of Clinical Telemetry Report</h3>
-                <p>
-                  Official release of technology assessment and clinical telemetry integration guidelines.
-                </p>
-              </div>
-              <a href="#about" style={{ color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                Read Article <ChevronRight size={16} />
-              </a>
-            </div>
-
-            <div className="news-card">
-              <div>
-                <div className="news-date">
-                  <FileText size={14} /> August 28, 2026
-                </div>
-                <h3>C.A.R.E. Platform v2.4 Release</h3>
-                <p>
-                  Real-time ECG signal decoding and enhanced panic alert dispatch workflow.
-                </p>
-              </div>
-              <a href="#about" style={{ color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                Read Article <ChevronRight size={16} />
-              </a>
-            </div>
-
-            <div className="news-card">
-              <div>
-                <div className="news-date">
-                  <FileText size={14} /> August 15, 2026
-                </div>
-                <h3>Preventive Healthcare Initiative</h3>
-                <p>
-                  Join collaborative workshops to shape upcoming telemetry monitoring features.
-                </p>
-              </div>
-              <a href="#about" style={{ color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                Read Article <ChevronRight size={16} />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* 7. FOOTER SECTION */}
       <footer className="footer">
         <div className="footer-container">

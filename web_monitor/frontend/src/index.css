@@ -1757,61 +1757,6 @@ select.threshold-input option {
   margin-bottom: 1rem;
 }
 
-/* Latest News / Updates Section */
-.news-section {
-  padding: 4.5rem 2.5rem;
-  background-color: var(--surface-ice);
-}
-
-.news-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  margin-top: 2.5rem;
-}
-
-.news-card {
-  background-color: var(--primary);
-  color: white;
-  border-radius: 16px;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 10px 25px rgba(22, 59, 102, 0.15);
-  transition: all 0.3s ease;
-  min-height: 240px;
-}
-
-.news-card:hover {
-  transform: translateY(-5px);
-  background-color: var(--primary-dark);
-  box-shadow: 0 16px 35px rgba(22, 59, 102, 0.25);
-}
-
-.news-date {
-  font-size: 0.8rem;
-  opacity: 0.75;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 0.75rem;
-}
-
-.news-card h3 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  line-height: 1.35;
-  margin-bottom: 1rem;
-}
-
-.news-card p {
-  font-size: 0.9rem;
-  opacity: 0.88;
-  line-height: 1.5;
-  margin-bottom: 1.5rem;
-}
-
 /* Footer Section */
 .footer {
   background-color: var(--surface-footer);
